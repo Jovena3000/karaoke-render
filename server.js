@@ -1,58 +1,39 @@
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: {
+    origin: "*"
+  }
 });
 
-const rooms = {};
+// pasta pública
+app.use(express.static("public"));
 
-io.on("connection", socket => {
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
-  socket.on("joinRoom", ({ room, name }) => {
-    socket.join(room);
+// socket
+io.on("connection", (socket) => {
+  console.log("Usuário conectado:", socket.id);
 
-    if (!rooms[room]) rooms[room] = [];
-    rooms[room].push({ id: socket.id, name });
-
-    io.to(room).emit("users", rooms[room]);
-  });
-
-  socket.on("emoji", ({ room, emoji }) => {
-    io.to(room).emit("emoji", emoji);
-  });
-
-  socket.on("score", ({ room, score }) => {
-    io.to(room).emit("score", score);
+  socket.on("emoji", (data) => {
+    io.emit("emoji", data);
   });
 
   socket.on("disconnect", () => {
-    for (const room in rooms) {
-      rooms[room] = rooms[room].filter(u => u.id !== socket.id);
-      io.to(room).emit("users", rooms[room]);
-    }
+    console.log("Usuário saiu:", socket.id);
   });
-
-});
-
-app.use(express.static("client"));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "client/dist/index.html"));
 });
 
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-  console.log("🎤 Karaoke rodando na porta", PORT);
+  console.log("Servidor rodando na porta " + PORT);
 });
-

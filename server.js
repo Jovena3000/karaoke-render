@@ -44,7 +44,7 @@ io.on("connection", socket => {
 
 });
 
-app.use(express.static(path.join(__dirname, "client/dist")));
+app.use(express.static("client"));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "client/dist/index.html"));
@@ -55,3 +55,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("🎤 Karaoke rodando na porta", PORT);
 });
+

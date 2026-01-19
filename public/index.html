@@ -1,10 +1,67 @@
-karaoke-render
-│
-├── server.js
-├── package.json
-├── .gitignore
-│
-└── client
-    ├── package.json
-    ├── src
-    └── index.html
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import cors from "cors";
+import RoomManager from "./roomManager.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ['websocket', 'polling']
+});
+
+const roomManager = new RoomManager(io);
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from the Vite build
+app.use(express.static(join(__dirname, "../../dist")));
+
+// WebSocket events (mantenha seu código atual aqui)
+io.on("connection", (socket) => {
+  console.log(`Usuário conectado: ${socket.id}`);
+
+  // ... todo o seu código existente de socket.io
+  // Criar sala
+  socket.on("create_room", (data, callback) => {
+    const roomId = roomManager.createRoom(data.user);
+    socket.join(roomId);
+    callback(roomId);
+  });
+
+  // Entrar em sala
+  socket.on("join_room", (data, callback) => {
+    const room = roomManager.joinRoom(data.roomId, data.user, socket);
+    if (room) {
+      socket.join(data.roomId);
+      callback(room);
+    } else {
+      callback(null);
+    }
+  });
+
+  // ... resto dos eventos
+});
+
+// Handle client-side routing
+app.get("*", (_req, res) => {
+  res.sendFile(join(__dirname, "../../dist", "index.html"));
+});
+
+const PORT = process.env.PORT || 3000;
+const HOST = "0.0.0.0";
+
+httpServer.listen(PORT, HOST, () => {
+  console.log(`Servidor rodando em http://${HOST}:${PORT}`);
+});

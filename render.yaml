@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: karaoke-render
+    env: node
+    buildCommand: npm run render-build
+    startCommand: npm run render-start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_YOUTUBE_API_KEY
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true

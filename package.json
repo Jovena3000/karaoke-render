@@ -1,17 +1,17 @@
 {
-  "name": "karaoke-render",
+  "name": "karaoke-app",
   "version": "1.0.0",
-  "description": "Karaoke online com salas e emojis",
-  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
-  },
-  "engines": {
-    "node": "18.x"
+    "dev": "vite --host",
+    "build": "vite build",
+    "server:build": "cd server && npm install && npm run build",
+    "render-build": "npm run build && npm run server:build",
+    "render-start": "NODE_ENV=production node server/dist/index.js",
+    "start": "npm run render-start",
+    "preview": "vite preview --host"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2",
-    "cors": "^2.8.5"
+    // ... mantenha todas as dependências que você já tem
   }
 }
